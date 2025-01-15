@@ -1,0 +1,29 @@
+{
+  "name": "moustapha_ndiaye_youdemy",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+     "build": "npx tailwindcss -i ./public/css/tailwind.css -o ./public/css/styles.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Youcode-Classe-E-2024-2025/Moustapha_Ndiaye_Youdemy.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Youcode-Classe-E-2024-2025/Moustapha_Ndiaye_Youdemy/issues"
+  },
+  "homepage": "https://github.com/Youcode-Classe-E-2024-2025/Moustapha_Ndiaye_Youdemy#readme",
+  "description": "",
+  "dependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17"
+  }
+}
