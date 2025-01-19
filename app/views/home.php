@@ -1,3 +1,14 @@
+<?php
+        // Connect to the database
+        require __DIR__ . '/../core/Database.php';
+        $db = new Database();
+        require __DIR__ . '/../models/Course.php';
+
+        $courseModel = new App\Models\CourseModel($db);
+        
+        
+        $courses = $courseModel->getAllCoursesDetails();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,10 +36,14 @@
             </button>
 
             <!-- Menu Desktop -->
-            <div class="hidden md:flex space-x-4 text-2xl font-bold">
-                <div class="hover:text-gray-700 cursor-pointer">Sign In</div>
-                <div class="text-red-500 border border-red-500 px-2 rounded-md hover:bg-red-50 cursor-pointer">Sign Up</div>
-            </div>
+        <div class="hidden md:flex space-x-4 text-2xl font-bold">
+            <a href="/login" class="border border-black px-4 py-1 rounded-md hover:bg-red-50 transition-colors">
+                Sign In
+            </a>
+            <a href="/register" class="text-red-500 border border-red-500 px-4 py-1 rounded-md hover:bg-red-50 transition-colors">
+                Sign Up
+            </a>
+        </div>
 
             <!-- Menu Mobile -->
             <div id="mobile-menu" class="hidden fixed top-16 left-0 right-0 bg-white p-4 shadow-sm md:hidden">

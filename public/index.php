@@ -10,33 +10,40 @@ require __DIR__ . '/../vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
-// Connect to the database
-require __DIR__ . '/../app/core/Database.php';
-$db = new Database();
+// define('BASE_URL', '/../app/views/users/');
 
-require __DIR__ . '/../app/core/Router.php';
+// require __DIR__ . '/../app/views/home.php';
+// require __DIR__ . '/../app/views/register.php';
 
-// Use the correct namespace for the Router class
-use App\Core\Router;
+$request_URI = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// Create a router instance
-$router = new Router();
-
-require __DIR__ . '/../app/config/routes.php';
-
-
-
-use App\Models\CourseModel;
-use App\Controllers\CourseController;
-
-require __DIR__ . '/../app/models/Course.php';
-require __DIR__ . '/../app/controllers/CourseController.php';
-
-$courseModel = new App\Models\CourseModel($db);
-$courseController = new \App\Controllers\CourseController($courseModel);
+function safeRequire($path) {
+    if (file_exists($path)) {
+        // require_once $path;
+        require __DIR__ . "/$path";
+    } else {
+        header("HTTP/1.0 404 Not Found");
+        echo "Page not found";
+        exit();
+    }
+}
 
 
-$courses = $courseModel->getAllCoursesDetails();
 
-require __DIR__ . '/../app/views/home.php';
+switch ($request_URI) {
+    case '/':
+    case '/home':
+        safeRequire('../app/views/home.php');
+        break;
+    case '/login':
+        safeRequire('../app/views/users/login.php');
+        break;
+    case '/register':
+        safeRequire('../app/views/users/register.php');
+        break;
 
+    default:
+        header("HTTP/1.0 404 Not Found");
+        echo "Page not found";
+        break;
+}
