@@ -3,3 +3,37 @@
 @tailwind components;
 @tailwind utilities;
 
+.input-field {
+    @apply peer block w-full rounded border bg-white px-3 py-2 leading-[2.15] transition-all duration-200 ease-linear placeholder-transparent focus:placeholder-transparent focus:outline-none focus:ring-2 focus:ring-red-500;
+}
+
+.input-label {
+    @apply absolute left-3 top-0 mb-0 max-w-[90%] origin-[0_0] truncate pt-[0.37rem] leading-[2.15] text-neutral-500 transition-all duration-200 ease-out peer-focus:transform peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:text-red-500 peer-focus:bg-white;}
+
+    .form-label {
+        position: absolute;
+        left: 1rem;
+        top: 0.75rem;
+        transition: all 0.2s ease-out;
+        pointer-events: none;
+        color: #6b7280; /* Gray-500 */
+    }
+
+    .form-label.floating {
+        top: -0.5rem;
+        left: 0.75rem;
+        font-size: 0.75rem; /* Text-sm */
+        color: #ef4444; /* Red-500 */
+        background-color: white;
+        padding: 0 0.25rem;
+    }
+
+    .form-input:focus ~ .form-label,
+    .form-input:not(:placeholder-shown) ~ .form-label {
+        top: -0.5rem;
+        left: 0.75rem;
+        font-size: 0.75rem; /* Text-sm */
+        color: #ef4444; /* Red-500 */
+        background-color: white;
+        padding: 0 0.25rem;
+    }
