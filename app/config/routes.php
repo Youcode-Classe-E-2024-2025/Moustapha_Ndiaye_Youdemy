@@ -2,7 +2,7 @@
 use App\Core\Router;
 
 // Create a router instance
-$router = new Router();
+// $router = new Router();
 
 // Define routes
 
