@@ -5,15 +5,21 @@ ini_set('display_errors', 1);
 
 // Load Composer dependencies
 require __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../app/models/User.php';
+require_once __DIR__ . '/../app/controllers/UserController.php';
+
 
 // Load environment variables
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
-// define('BASE_URL', '/../app/views/users/');
+require __DIR__ . '/../app/core/Database.php';
+$db = new Database();
+//
+$userController = new UserController($db);
+$userController->createAccount();
 
-// require __DIR__ . '/../app/views/home.php';
-// require __DIR__ . '/../app/views/register.php';
+
 
 $request_URI = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 

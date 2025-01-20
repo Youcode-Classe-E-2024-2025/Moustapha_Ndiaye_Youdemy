@@ -1,5 +1,5 @@
 <?php
- 
+        
 ?>
 
 <!DOCTYPE html>
@@ -32,7 +32,7 @@
             </div>
 
            <!-- Register Form -->
-<form id="registrationForm" action="registerView" method="POST">
+<form id="registrationForm" action="/register" method="POST">
     <!-- Full Name -->
     <div class="relative mb-6">
         <input
