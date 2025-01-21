@@ -2,25 +2,15 @@
 // ini_set('display_errors', 1);
 // ini_set('display_startup_errors', 1);
 // error_reporting(E_ALL);
-// // Dans register.php
 require_once __DIR__ . '/../../core/Database.php';
 require_once __DIR__ . '/../../controllers/UserController.php';
 
-// // Créez une instance de Database
-// // $database = new Database();
+// Create an instance of Database 
+
 $database = Database::getInstance();
 
-// // Récupérez l'objet PDO
+// // get PDO object
 $pdo = $database->getPdo();
-
-// // Créez une instance de UserController en passant l'objet PDO
-// $userController = new UserController($pdo);
-
-// // Appelez la méthode createAccount si le formulaire est soumis
-// if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-//     $userController->createAccount();
-// }
-
 
 // Create an instance of UserController
 $userController = new UserController($pdo);
@@ -45,18 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ]);
 
     if ($result['success']) {
-        header('Location: /login'); // Redirect to the login page
+        header('Location: /login'); 
         exit();
     } else {
         $errors = $result['errors'];
     }
 }
-// Display errors
-// if (!empty($errors)) {
-//     foreach ($errors as $error) {
-//         echo "<div class='error'>$error</div>";
-//     }
-// }
 
 ?>
 

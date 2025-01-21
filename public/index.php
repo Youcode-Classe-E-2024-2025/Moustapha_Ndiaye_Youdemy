@@ -37,7 +37,15 @@ switch ($request_URI) {
     case '/register':
         safeRequire('../app/views/users/register.php');
         break;
-
+    case '/profileAdmin':
+        safeRequire('../app/views/users/profileAdmin.php');
+        break;
+    case '/profileInstructor':
+        safeRequire('../app/views/users/profileInstructor.php');
+        break;
+    case '/profileStudent':
+        safeRequire('../app/views/users/profileStudent.php');
+        break;
     default:
         header("HTTP/1.0 404 Not Found");
         echo "Page not found";

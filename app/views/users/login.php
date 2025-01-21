@@ -1,5 +1,40 @@
 <?php
- 
+// Include the Database configuration
+require_once __DIR__ . '/../../core/Database.php';
+require_once __DIR__ . '/../../controllers/UserController.php';
+
+// Get the Database instance
+$database = Database::getInstance();
+$pdo = $database->getPdo();
+
+// Create an instance of UserController
+$userController = new UserController($pdo);
+// Form handling
+$errors = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = $_POST['email'] ?? '';
+    $password = $_POST['password'] ?? '';
+
+    // Call the login method
+    $result = $userController->login([
+        'email' => $email,
+        'password' => $password
+    ]);
+
+    // if ($result['success']) {
+    //     header('Location: /dashboard'); // Redirect to the dashboard or home page
+    //     exit();
+    // } else {
+    //     $errors = $result['errors'];
+    // }
+    if ($result['success']) {
+        header('Location: ' . $result['redirectUrl']); // Redirect based on role
+        exit();
+    } else {
+        $errors = $result['errors'];
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -31,9 +66,17 @@
                 <p class="mt-2 text-gray-600">Login to access your account</p>
             </div>
 
-
+            <?php if (!empty($errors)): ?>
+        <div style="color: red;">
+            <ul>
+                <?php foreach ($errors as $error): ?>
+                    <li><?php echo htmlspecialchars($error); ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
            <!-- Register Form -->
-<form id="loginForm" action="registerView" method="POST">
+<form id="loginForm" action="/login" method="POST">
 
     <!-- Email -->
     <div class="relative mb-6">
@@ -51,7 +94,7 @@
     <!-- Password -->
     <div class="relative mb-6">
         <input
-            name="passWord"
+            name="password"
             type="password"
             id="password"
             class="form-input peer"
