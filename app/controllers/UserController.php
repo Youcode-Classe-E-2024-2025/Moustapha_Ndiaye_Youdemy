@@ -1,80 +1,95 @@
 <?php
-
-// Inclure le modèle User
-require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../../app/models/User.php';
 
 class UserController
 {
     private $userModel;
 
-    // Constructor
     public function __construct($pdo)
     {
         $this->userModel = new User($pdo);
     }
 
-    // Method to create an account
-    public function createAccount()
+    /**
+     * Create a new user account.
+     *
+     * @param array $data The form data (name, email, password, role).
+     * @return array An array containing a success status and any errors.
+     */
+    public function createAccount(array $data): array
+    {
+        // Validate the data
+        $errors = $this->validateRegistrationData($data);
+
+        if (!empty($errors)) {
+            return ['success' => false, 'errors' => $errors];
+        }
+
+        try {
+            // Hash the password
+            $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
+
+            // Prepare the data for the model
+            $userData = [
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => $hashedPassword,
+                'role' => $data['role']
+            ];
+
+            // Use the model to create the user
+            if ($this->userModel->createUser($userData)) {
+                return ['success' => true, 'errors' => []];
+            } else {
+                return ['success' => false, 'errors' => ['database' => "An error occurred while creating the account."]];
+            }
+        } catch (PDOException $e) {
+            error_log("Error while creating the account: " . $e->getMessage());
+            return ['success' => false, 'errors' => ['database' => "An error occurred while creating the account. Please try again later."]];
+        }
+    }
+
+    /**
+     * Validate registration data.
+     *
+     * @param array $data The form data (name, email, password, confirmPassword, role).
+     * @return array An array of validation errors.
+     */
+    private function validateRegistrationData(array $data): array
     {
         $errors = [];
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // var_dump($_POST); // Affiche les données du formulaire
-            // exit; // Arrête l'exécution pour vérifier les données
-            $fullName = $_POST['fullName'] ?? '';
-            $email = $_POST['email'] ?? '';
-            $passWord = $_POST['passWord'] ?? '';
-            $confirmpassWord = $_POST['confirmpassWord'] ?? '';
-            $role = $_POST['role'] ?? '';
-
-            // Validation
-            if (empty($fullName)) {
-                $errors['fullName'] = "Full Name is required.";
-            }
-            if (empty($email)) {
-                $errors['email'] = "Email is required.";
-            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $errors['email'] = "Please enter a valid email address.";
-            }
-            if (empty($passWord)) {
-                $errors['passWord'] = "passWord is required.";
-            } elseif (strlen($passWord) < 8) {
-                $errors['passWord'] = "passWord must be at least 8 characters long.";
-            }
-            if (empty($confirmpassWord)) {
-                $errors['confirmpassWord'] = "Please confirm your passWord.";
-            } elseif ($passWord !== $confirmpassWord) {
-                $errors['confirmpassWord'] = "passWords do not match.";
-            }
-            if (empty($role)) {
-                $errors['role'] = "Role is required.";
-            }
-
-            // If no errors, proceed
-            if (empty($errors)) {
-                // Hash the passWord
-                $hashedpassWord = passWord_hash($passWord, passWord_BCRYPT);
-
-                // Create user data array
-                $userData = [
-                    'fullName' => $fullName,
-                    'email' => $email,
-                    'passWord' => $hashedpassWord,
-                    'role' => $role
-                ];
-
-                // Create the user
-                if ($this->userModel->createAccount($userData)) {
-                    echo "Account created successfully!";
-                    header('Location: /login');
-                    exit();
-                } else {
-                    $errors[] = "Error while creating the account.";
-                }
-            }
+        // Validate name
+        if (empty($data['name'])) {
+            $errors['name'] = "Full Name is required.";
         }
 
-        // Pass errors to the view
-        // include __DIR__ . '/../views/users/register.php';
+        // Validate email
+        if (empty($data['email'])) {
+            $errors['email'] = "Email is required.";
+        } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = "Please enter a valid email address.";
+        }
+
+        // Validate password
+        if (empty($data['password'])) {
+            $errors['password'] = "Password is required.";
+        } elseif (strlen($data['password']) < 8) {
+            $errors['password'] = "Password must be at least 8 characters long.";
+        }
+
+        // Validate confirmPassword
+        if (empty($data['confirmPassword'])) {
+            $errors['confirmPassword'] = "Please confirm your password.";
+        } elseif ($data['password'] !== $data['confirmPassword']) {
+            $errors['confirmPassword'] = "Passwords do not match.";
+        }
+
+        // Validate role
+        if (empty($data['role'])) {
+            $errors['role'] = "Role is required.";
+        }
+
+        return $errors;
     }
 }

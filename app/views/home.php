@@ -1,13 +1,13 @@
 <?php
-        // Connect to the database
-        require __DIR__ . '/../core/Database.php';
-        $db = new Database();
-        require __DIR__ . '/../models/Course.php';
+        // // Connect to the database
+        // require __DIR__ . '/../core/Database.php';
+        // $db = new Database();
+        // require __DIR__ . '/../models/Course.php';
 
-        $courseModel = new App\Models\CourseModel($db);
+        // $courseModel = new App\Models\CourseModel($db);
         
         
-        $courses = $courseModel->getAllCoursesDetails();
+        // $courses = $courseModel->getAllCoursesDetails();
 ?>
 <!DOCTYPE html>
 <html lang="en">

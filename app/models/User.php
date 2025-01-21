@@ -5,37 +5,95 @@ class User
     private $pdo;
 
     // Constructor
-    public function __construct($pdo)
+    public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
     }
 
-    // Method to create a user
-    public function createAccount(array $data): bool
+    /**
+     * Insert a new user into the database.
+     *
+     * @param array $data The user data (name, email, password, role, status, created_at, updated_at).
+     * @return bool True if the user was successfully inserted, false otherwise.
+     */
+    public function createUser(array $data): bool
     {
         try {
-            $sql = "INSERT INTO users (fullName, email, password, role) VALUES (:fullName, :email, :password, :role)";
+            $sql = "INSERT INTO Users (name, email, password, role, status, created_at, updated_at) 
+                    VALUES (:name, :email, :password, :role, :status, :created_at, :updated_at)";
             $stmt = $this->pdo->prepare($sql);
-            return $stmt->execute($data);
+            return $stmt->execute([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => $data['password'],
+                'role' => $data['role'],
+                'status' => $data['status'] ?? 'Pending',
+                'created_at' => $data['created_at'] ?? date('Y-m-d H:i:s'),
+                'updated_at' => $data['updated_at'] ?? date('Y-m-d H:i:s')
+            ]);
         } catch (PDOException $e) {
-            // Log the error or handle it as needed
             error_log("Error creating user: " . $e->getMessage());
-            return false;
+            throw new RuntimeException("Error while creating the user.", 0, $e);
         }
     }
 
-    // Method to find a user by email
+    /**
+     * Find a user by email.
+     *
+     * @param string $email The user's email.
+     * @return array|null The user data or null if not found.
+     */
     public function findByEmail(string $email): ?array
     {
         try {
-            $sql = "SELECT * FROM users WHERE email = :email";
+            $sql = "SELECT * FROM Users WHERE email = :email";
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute(['email' => $email]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (PDOException $e) {
-            // Log the error or handle it as needed
             error_log("Error finding user by email: " . $e->getMessage());
-            return null;
+            throw new RuntimeException("Error while searching for the user.", 0, $e);
+        }
+    }
+
+    /**
+     * Verify user credentials.
+     *
+     * @param string $email The user's email.
+     * @param string $password The user's password.
+     * @return array|null The user data if credentials are valid, otherwise null.
+     */
+    public function verifyCredentials(string $email, string $password): ?array
+    {
+        $user = $this->findByEmail($email);
+
+        if ($user && password_verify($password, $user['password'])) {
+            return $user;
+        }
+
+        return null;
+    }
+
+    /**
+     * Update user status.
+     *
+     * @param int $userId The user's ID.
+     * @param string $status The new status.
+     * @return bool True if the status was successfully updated, false otherwise.
+     */
+    public function updateStatus(int $userId, string $status): bool
+    {
+        try {
+            $sql = "UPDATE Users SET status = :status, updated_at = :updated_at WHERE id = :id";
+            $stmt = $this->pdo->prepare($sql);
+            return $stmt->execute([
+                'status' => $status,
+                'updated_at' => date('Y-m-d H:i:s'),
+                'id' => $userId
+            ]);
+        } catch (PDOException $e) {
+            error_log("Error updating user status: " . $e->getMessage());
+            throw new RuntimeException("Error while updating the user's status.", 0, $e);
         }
     }
 }

@@ -1,5 +1,63 @@
 <?php
-        
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
+// // Dans register.php
+require_once __DIR__ . '/../../core/Database.php';
+require_once __DIR__ . '/../../controllers/UserController.php';
+
+// // Créez une instance de Database
+// // $database = new Database();
+$database = Database::getInstance();
+
+// // Récupérez l'objet PDO
+$pdo = $database->getPdo();
+
+// // Créez une instance de UserController en passant l'objet PDO
+// $userController = new UserController($pdo);
+
+// // Appelez la méthode createAccount si le formulaire est soumis
+// if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+//     $userController->createAccount();
+// }
+
+
+// Create an instance of UserController
+$userController = new UserController($pdo);
+
+// Form handling
+$errors = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = $_POST['name'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $password = $_POST['password'] ?? '';
+    $confirmPassword = $_POST['confirmPassword'] ?? '';
+    $role = $_POST['role'] ?? '';
+
+    // Call the createAccount method
+    $result = $userController->createAccount([
+        'name' => $name,
+        'email' => $email,
+        'password' => $password,
+        'confirmPassword' => $confirmPassword,
+        'role' => $role
+    ]);
+
+    if ($result['success']) {
+        header('Location: /login'); // Redirect to the login page
+        exit();
+    } else {
+        $errors = $result['errors'];
+    }
+}
+// Display errors
+// if (!empty($errors)) {
+//     foreach ($errors as $error) {
+//         echo "<div class='error'>$error</div>";
+//     }
+// }
+
 ?>
 
 <!DOCTYPE html>
@@ -31,14 +89,23 @@
             <p class="mt-2 text-gray-600">Register to get started</p>
             </div>
 
+            <?php if (!empty($errors)): ?>
+        <div style="color: red;">
+            <ul>
+                <?php foreach ($errors as $error): ?>
+                    <li><?php echo htmlspecialchars($error); ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
            <!-- Register Form -->
-<form id="registrationForm" action="/register" method="POST">
+           <form id="registrationForm" action="/register" method="POST">
     <!-- Full Name -->
     <div class="relative mb-6">
         <input
             type="text"
             id="name"
-            name="fullName"
+            name="name" 
             pattern="[A-Za-z\s]{2,}"
             class="form-input peer"
             placeholder=" "
@@ -63,8 +130,8 @@
     <!-- Password -->
     <div class="relative mb-6">
         <input
-            name="passWord"
-            type="password"
+            name="password" 
+            type="password" 
             id="password"
             class="form-input peer"
             placeholder=" "
@@ -77,8 +144,8 @@
     <!-- Confirm Password -->
     <div class="relative mb-6">
         <input
-            name="confirmPassword"
-            type="password"
+            name="confirmPassword" 
+            type="password" 
             id="confirmPassword"
             class="form-input peer"
             placeholder=" "
@@ -90,7 +157,7 @@
     <!-- Role Selection -->
     <div class="relative mb-6">
         <select
-            name="role"
+            name="role" 
             id="role"
             class="form-input peer"
             required>
@@ -113,7 +180,6 @@
         </button>
     </div>
 </form>
-
             <!-- Additional Links -->
             <div class="mt-6 space-y-2">
                 <p class="text-center text-sm text-gray-600">
