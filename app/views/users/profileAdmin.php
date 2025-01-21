@@ -1,3 +1,31 @@
+<?php
+// Inclut les dépendances nécessaires
+require_once __DIR__ . '/../../core/Database.php';
+require_once __DIR__ . '/../../models/Admin.php';
+require_once __DIR__ . '/../../controllers/AdminController.php';
+
+
+// Create instance for Database
+$database = Database::getInstance();
+
+// Récupère l'objet PDO
+$pdo = $database->getPdo();
+
+// Create instance for AdminController
+$adminController = new AdminController($pdo);
+
+// Get datas
+try {
+    $statistics = $adminController->getGlobalStatistics();
+    $recentUsers = $adminController->getRecentUsers();
+    $recentCourses = $adminController->getRecentCourses();
+} catch (Exception $e) {
+    // require __DIR__ . '/../views/errors/500.php';
+    exit;
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,19 +60,19 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <h3 class="text-lg font-semibold text-gray-700">Total Users</h3>
-                <p class="text-3xl font-bold text-red-500">1,234</p>
+                <p class="text-3xl font-bold text-red-500"><?= $statistics['total_users'] ?? 'N/A' ?></p>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <h3 class="text-lg font-semibold text-gray-700">Total Courses</h3>
-                <p class="text-3xl font-bold text-red-500">567</p>
+                <p class="text-3xl font-bold text-red-500"><?= $statistics['total_courses'] ?? 'N/A' ?></p>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <h3 class="text-lg font-semibold text-gray-700">Active Students</h3>
-                <p class="text-3xl font-bold text-red-500">890</p>
+                <p class="text-3xl font-bold text-red-500"><?= $statistics['active_students'] ?? 'N/A' ?></p>
             </div>
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <h3 class="text-lg font-semibold text-gray-700">Total Categories</h3>
-                <p class="text-3xl font-bold text-red-500">45</p>
+                <p class="text-3xl font-bold text-red-500"><?= $statistics['total_categories'] ?? 'N/A' ?></p>
             </div>
         </div>
 
@@ -99,25 +127,32 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">John Doe</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">john@example.com</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">Student</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            Active
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <button class="text-blue-500 hover:text-blue-700 mr-2">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="text-red-500 hover:text-red-700">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <!-- Repeat rows as needed -->
+                                <?php if (!empty($recentUsers)): ?>
+                                    <?php foreach ($recentUsers as $user): ?>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['name']) ?></td>
+                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['email']) ?></td>
+                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['role']) ?></td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?= $user['status'] === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
+                                                    <?= htmlspecialchars($user['status']) ?>
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <button class="text-blue-500 hover:text-blue-700 mr-2">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="text-red-500 hover:text-red-700">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No recent users found.</td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -141,21 +176,28 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">Introduction to Web Development</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">Development</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">Jane Smith</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">42</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <button class="text-blue-500 hover:text-blue-700 mr-2">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="text-red-500 hover:text-red-700">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <!-- Repeat rows as needed -->
+                                <?php if (!empty($recentCourses)): ?>
+                                    <?php foreach ($recentCourses as $course): ?>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($course['title']) ?></td>
+                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($course['category']) ?></td>
+                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($course['instructor']) ?></td>
+                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($course['students']) ?></td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <button class="text-blue-500 hover:text-blue-700 mr-2">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="text-red-500 hover:text-red-700">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No recent courses found.</td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>

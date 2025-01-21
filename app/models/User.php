@@ -96,4 +96,13 @@ class User
             throw new RuntimeException("Error while updating the user's status.", 0, $e);
         }
     }
+
+    public function logout(): void {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        session_unset();
+        session_destroy();
+    }
 }
