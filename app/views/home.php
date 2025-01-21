@@ -1,13 +1,23 @@
 <?php
-        // // Connect to the database
-        // require __DIR__ . '/../core/Database.php';
-        // $db = new Database();
-        // require __DIR__ . '/../models/Course.php';
 
-        // $courseModel = new App\Models\CourseModel($db);
-        
-        
-        // $courses = $courseModel->getAllCoursesDetails();
+// Initialiser le contrôleur
+require_once __DIR__ . '/../controllers/CourseController.php';
+$studentController = new CourseController();
+
+// Récupérer les données dynamiques
+$courses = $studentController->getAllCourses();
+$categories = $studentController->getCategories();
+
+// Filtrer les cours si une recherche ou une catégorie est spécifiée
+if (isset($_GET['search'])) {
+    $searchTerm = $_GET['search'];
+    $courses = $studentController->searchCourses($searchTerm);
+}
+
+if (isset($_GET['category'])) {
+    $category = $_GET['category'];
+    $courses = $studentController->getCoursesByCategory($category);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -267,7 +277,7 @@
 
         <!-- Bottom Bar -->
         <div class="border-t border-gray-800 mt-12 pt-8 text-center text-sm">
-            <p>Copyright 2025</p>
+            <p> &copy; 2025 Youdemy. All rights reserved.</p>
         </div>
     </div>
 </footer>

@@ -1,34 +1,36 @@
 <?php
 session_start();
-// Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
+// Redirect to login page if users if not connected
 if (!isset($_SESSION['user'])) {
     header('Location: /login');
     exit();
 }
 $user = $_SESSION['user'];
 
-// Exemple de données de cours (à remplacer par une requête SQL réelle)
-$courses = [
-    [
-        'title' => 'Introduction to Web Development',
-        'description' => 'Apprenez les bases du développement web avec HTML, CSS et JavaScript.',
-        'image_uri' => 'https://via.placeholder.com/400x200',
-        'category' => 'Full Stack'
-    ],
-    [
-        'title' => 'Data Science Fundamentals',
-        'description' => 'Découvrez les concepts de base de la science des données et du machine learning.',
-        'image_uri' => 'https://via.placeholder.com/400x200',
-        'category' => 'Data Science'
-    ],
-    [
-        'title' => 'DevOps Essentials',
-        'description' => 'Maîtrisez les outils et pratiques DevOps pour améliorer votre workflow.',
-        'image_uri' => 'https://via.placeholder.com/400x200',
-        'category' => 'DevOps'
-    ],
-    // Ajoutez d'autres cours ici
-];
+// check user role
+if ($user['role'] !== 'Student') {
+    header('Location: /unauthorized');
+    exit();
+}
+
+// Initialize controller
+require_once __DIR__ . '/../../controllers/CourseController.php';
+$studentController = new CourseController();
+
+// fecth dynamic datas
+$courses = $studentController->getAllCourses();
+$categories = $studentController->getCategories();
+
+// Filter courses by categories
+if (isset($_GET['search'])) {
+    $searchTerm = $_GET['search'];
+    $courses = $studentController->searchCourses($searchTerm);
+}
+
+if (isset($_GET['category'])) {
+    $category = $_GET['category'];
+    $courses = $studentController->getCoursesByCategory($category);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -50,7 +52,7 @@ $courses = [
             </div>
             <!-- User Menu -->
             <div class="flex items-center space-x-4">
-                <span class="text-gray-600"><?php echo htmlspecialchars($user['email']); ?></span>
+                <span class="text-gray-600"><?= htmlspecialchars($user['email']) ?></span>
                 <a href="/logout" class="text-red-500 hover:text-red-600">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
@@ -62,50 +64,28 @@ $courses = [
     <main class="container mx-auto px-6 py-8">
         <!-- Search Bar -->
         <div class="mb-8">
-            <input 
-                type="text" 
-                id="searchInput" 
-                placeholder="Rechercher un cours..." 
-                class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500"
-            >
+            <form method="GET" action="">
+                <input 
+                    type="text" 
+                    name="search" 
+                    placeholder="Rechercher un cours..." 
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '' ?>"
+                >
+            </form>
         </div>
 
         <!-- Filters -->
         <div class="sticky top-0 z-50 p-4 bg-white shadow-md mb-8">
             <div class="flex flex-wrap gap-4 justify-center">
-                <button data-category="all" class="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">
+                <!-- <a href="?category=all" class="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">
                     All
-                </button>
-                <button data-category="full-stack" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors">
-                    Full Stack
-                </button>
-                <button data-category="data-science" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors">
-                    Data Science
-                </button>
-                <button data-category="devops" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors">
-                    DevOps
-                </button>
-                <button data-category="mobile" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors">
-                    Mobile
-                </button>
-                <button data-category="cybersecurity" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors">
-                    Cybersecurity
-                </button>
-                <button data-category="ui-ux" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors">
-                    UI/UX
-                </button>
-                <button data-category="ai" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors">
-                    AI
-                </button>
-                <button data-category="game-dev" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors">
-                    Game Dev
-                </button>
-                <button data-category="blockchain" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors">
-                    Blockchain
-                </button>
-                <button data-category="qa" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors">
-                    QA Testing
-                </button>
+                </a> -->
+                <?php foreach ($categories as $category): ?>
+                    <a href="?category=<?= urlencode($category) ?>" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors">
+                        <?= htmlspecialchars($category) ?>
+                    </a>
+                <?php endforeach; ?>
             </div>
         </div>
 
@@ -128,9 +108,9 @@ $courses = [
                             <p class="text-gray-600">
                                 <?= htmlspecialchars($course['description']) ?>
                             </p>
-                            <button class="text-red-500 font-semibold hover:text-red-600 transition-colors">
-                                Learn more →
-                            </button>
+                            <a href="/course/<?= htmlspecialchars($course['id']) ?>" class="text-red-500 font-semibold hover:text-red-600 transition-colors">
+                                Enroll Now →
+                            </a>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -143,58 +123,67 @@ $courses = [
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white shadow mt-8">
-        <div class="container mx-auto px-6 py-4 text-center text-gray-600">
-            &copy; 2025 Youdemy. All rights reserved.
+    <footer class="bg-white rounded-md shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-12 md:py-16">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Contact Info -->
+            <div class="space-y-4">
+                <h3 class="text-xl font-bold mb-4">Contact</h3>
+                <div class="flex items-center space-x-3">
+                    <i data-lucide="mail" class="w-5 h-5 text-red-500"></i>
+                    <a href="mailto:hello@Youdemy.com" class="hover:text-red-500 transition-colors">
+                        hello@Youdemy.com
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links 1 -->
+            <div>
+                <h3 class="text-xl font-bold mb-4">Training</h3>
+                <ul class="space-y-3">
+                    <li><a href="#" class="hover:text-red-500 transition-colors">Our Courses</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition-colors">Hackerspaces</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition-colors">Youdemy</a></li>
+                </ul>
+            </div>
+
+            <!-- Quick Links 2 -->
+            <div>
+                <h3 class="text-xl font-bold mb-4">About</h3>
+                <ul class="space-y-3">
+                    <li><a href="#" class="hover:text-red-500 transition-colors">Discover Youdemy</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition-colors">Careers</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition-colors">Youdemy Policies</a></li>
+                </ul>
+            </div>
+
+            <!-- Social Media -->
+            <div>
+                <h3 class="text-xl font-bold mb-4">Follow Us</h3>
+                <div class="flex space-x-4">
+                    <a href="#" class="hover:text-red-500 transition-colors">
+                        <i data-lucide="facebook" class="w-6 h-6"></i>
+                    </a>
+                    <a href="#" class="hover:text-red-500 transition-colors">
+                        <i data-lucide="instagram" class="w-6 h-6"></i>
+                    </a>
+                    <a href="#" class="hover:text-red-500 transition-colors">
+                        <i data-lucide="linkedin" class="w-6 h-6"></i>
+                    </a>
+                    <a href="#" class="hover:text-red-500 transition-colors">
+                        <i data-lucide="twitter" class="w-6 h-6"></i>
+                    </a>
+                </div>
+            </div>
         </div>
-    </footer>
 
-    <!-- JavaScript pour le filtrage des cours et la recherche -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const buttons = document.querySelectorAll('[data-category]');
-            const courses = document.querySelectorAll('.bg-white.rounded-xl');
-            const searchInput = document.getElementById('searchInput');
+        <!-- Bottom Bar -->
+        <div class="border-t border-gray-800 mt-12 pt-8 text-center text-sm">
+            <p> &copy; 2025 Youdemy. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
 
-            // Fonction pour filtrer les cours
-            function filterCourses() {
-                const searchTerm = searchInput.value.toLowerCase();
-                const activeCategory = document.querySelector('[data-category].bg-red-500')?.getAttribute('data-category') || 'all';
-
-                courses.forEach(course => {
-                    const title = course.querySelector('h3').textContent.toLowerCase();
-                    const description = course.querySelector('p').textContent.toLowerCase();
-                    const category = course.querySelector('p').textContent.toLowerCase();
-
-                    const matchesSearch = title.includes(searchTerm) || description.includes(searchTerm);
-                    const matchesCategory = activeCategory === 'all' || category.includes(activeCategory);
-
-                    if (matchesSearch && matchesCategory) {
-                        course.style.display = 'block';
-                    } else {
-                        course.style.display = 'none';
-                    }
-                });
-            }
-
-            // Gestion des clics sur les boutons de catégorie
-            buttons.forEach(button => {
-                button.addEventListener('click', () => {
-                    buttons.forEach(btn => {
-                        btn.classList.remove('bg-red-500', 'text-white');
-                        btn.classList.add('bg-gray-200', 'text-gray-700');
-                    });
-
-                    button.classList.remove('bg-gray-200', 'text-gray-700');
-                    button.classList.add('bg-red-500', 'text-white');
-
-                    filterCourses();
-                });
-            });
-
-            // Gestion de la recherche
-            searchInput.addEventListener('input', filterCourses);
-        });
-    </script>
+    <script src="../js/profilStudent.js"></script>
 </body>
 </html>

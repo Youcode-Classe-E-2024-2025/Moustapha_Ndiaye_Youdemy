@@ -156,10 +156,65 @@ $user = $_SESSION['user'];
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white shadow mt-8">
-        <div class="container mx-auto px-6 py-4 text-center text-gray-600">
-            &copy; 2025 Youdemy. All rights reserved.
+    <footer class="bg-white rounded-md shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-12 md:py-16">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Contact Info -->
+            <div class="space-y-4">
+                <h3 class="text-xl font-bold mb-4">Contact</h3>
+                <div class="flex items-center space-x-3">
+                    <i data-lucide="mail" class="w-5 h-5 text-red-500"></i>
+                    <a href="mailto:hello@Youdemy.com" class="hover:text-red-500 transition-colors">
+                        hello@Youdemy.com
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links 1 -->
+            <div>
+                <h3 class="text-xl font-bold mb-4">Training</h3>
+                <ul class="space-y-3">
+                    <li><a href="#" class="hover:text-red-500 transition-colors">Our Courses</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition-colors">Hackerspaces</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition-colors">Youdemy</a></li>
+                </ul>
+            </div>
+
+            <!-- Quick Links 2 -->
+            <div>
+                <h3 class="text-xl font-bold mb-4">About</h3>
+                <ul class="space-y-3">
+                    <li><a href="#" class="hover:text-red-500 transition-colors">Discover Youdemy</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition-colors">Careers</a></li>
+                    <li><a href="#" class="hover:text-red-500 transition-colors">Youdemy Policies</a></li>
+                </ul>
+            </div>
+
+            <!-- Social Media -->
+            <div>
+                <h3 class="text-xl font-bold mb-4">Follow Us</h3>
+                <div class="flex space-x-4">
+                    <a href="#" class="hover:text-red-500 transition-colors">
+                        <i data-lucide="facebook" class="w-6 h-6"></i>
+                    </a>
+                    <a href="#" class="hover:text-red-500 transition-colors">
+                        <i data-lucide="instagram" class="w-6 h-6"></i>
+                    </a>
+                    <a href="#" class="hover:text-red-500 transition-colors">
+                        <i data-lucide="linkedin" class="w-6 h-6"></i>
+                    </a>
+                    <a href="#" class="hover:text-red-500 transition-colors">
+                        <i data-lucide="twitter" class="w-6 h-6"></i>
+                    </a>
+                </div>
+            </div>
         </div>
-    </footer>
+
+        <!-- Bottom Bar -->
+        <div class="border-t border-gray-800 mt-12 pt-8 text-center text-sm">
+            <p> &copy; 2025 Youdemy. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
 </body>
 </html>
