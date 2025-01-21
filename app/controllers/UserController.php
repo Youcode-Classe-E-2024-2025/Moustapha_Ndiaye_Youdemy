@@ -93,45 +93,6 @@ class UserController
         return $errors;
     }
 
-//     public function login(array $data): array
-// {
-//     $errors = [];
-
-//     // Validate email
-//     if (empty($data['email'])) {
-//         $errors['email'] = "Email is required.";
-//     } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-//         $errors['email'] = "Please enter a valid email address.";
-//     }
-
-//     // Validate password
-//     if (empty($data['password'])) {
-//         $errors['password'] = "Password is required.";
-//     }
-
-//     // If there are errors, return them
-//     if (!empty($errors)) {
-//         return ['success' => false, 'errors' => $errors];
-//     }
-
-//     try {
-//         // Verify credentials
-//         $user = $this->userModel->verifyCredentials($data['email'], $data['password']);
-
-//         if ($user) {
-//             // Start a session and store user data
-//             session_start();
-//             $_SESSION['user'] = $user;
-
-//             return ['success' => true, 'errors' => []];
-//         } else {
-//             return ['success' => false, 'errors' => ['login' => "Invalid email or password."]];
-//         }
-//     } catch (PDOException $e) {
-//         error_log("Error during login: " . $e->getMessage());
-//         return ['success' => false, 'errors' => ['database' => "An error occurred during login. Please try again later."]];
-//     }
-// }
         public function login(array $data): array
         {
             $errors = [];
@@ -184,11 +145,11 @@ class UserController
         {
             switch ($role) {
                 case 'Student':
-                    return '/profileAdmin';
+                    return '/profileStudent';
                 case 'Instructor':
                     return '/profileInstructor';
                 case 'Admin':
-                    return '/profileStudent';
+                    return '/profileAdmin';
                 default:
                     return '/login'; // Fallback for unknown roles
             }
