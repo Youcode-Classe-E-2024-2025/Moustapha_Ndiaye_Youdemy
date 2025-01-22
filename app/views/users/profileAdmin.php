@@ -36,6 +36,8 @@ try {
     $recentCourses = $adminController->getRecentCourses();
     $users = $adminController->getAllUsers();
     $courses = $adminController->getAllCourses();
+    $tags = $adminController->getAllTags();
+    $categories = $adminController->getAllCategories();
 } catch (Exception $e) {
     // require __DIR__ . '/../views/errors/500.php';
     exit;
@@ -55,15 +57,6 @@ if ($userId && $newRole) {
 } else {
     $result = ['success' => false, 'message' => 'Invalid request.'];
 }
-
-// try {
-//     // Récupère tous les utilisateurs
-    
-//     // echo json_encode($users);
-// } catch (Exception $e) {
-//     echo json_encode(['error' => 'An error occurred while fetching users.']);
-// }
-
 ?>
 
 
@@ -130,18 +123,18 @@ if ($userId && $newRole) {
                         <a href="#" class="block px-4 py-2 rounded hover:bg-red-50 hover:text-red-500 transition-colors">
                             <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
                         </a>
-                        <a href="#" class="block px-4 py-2 rounded hover:bg-red-50 hover:text-red-500 transition-colors">
+                        <button onclick="openModal()"class="block px-4 py-2 rounded hover:bg-red-50 hover:text-red-500 transition-colors">
                             <i class="fas fa-users mr-2"></i> Users
-                        </a>
-                        <a href="#" class="block px-4 py-2 rounded hover:bg-red-50 hover:text-red-500 transition-colors">
+                        </button>
+                        <button onclick="openCourseModal()" class="block px-4 py-2 rounded hover:bg-red-50 hover:text-red-500 transition-colors">
                             <i class="fas fa-book mr-2"></i> Courses
-                        </a>
-                        <a href="#" class="block px-4 py-2 rounded hover:bg-red-50 hover:text-red-500 transition-colors">
+                        </button>
+                        <button onclick="openCategoriesModal()" class="block px-4 py-2 rounded hover:bg-red-50 hover:text-red-500 transition-colors">
                             <i class="fas fa-tags mr-2"></i> Categories
-                        </a>
-                        <a href="#" class="block px-4 py-2 rounded hover:bg-red-50 hover:text-red-500 transition-colors">
+                        </button>
+                        <button onclick="openTagsModal()" class="block px-4 py-2 rounded hover:bg-red-50 hover:text-red-500 transition-colors">
                             <i class="fas fa-hashtag mr-2"></i> Tags
-                        </a>
+                        </button>
                         <a href="#" class="block px-4 py-2 rounded hover:bg-red-50 hover:text-red-500 transition-colors">
                             <i class="fas fa-question-circle mr-2"></i> Quizzes
                         </a>
@@ -151,6 +144,161 @@ if ($userId && $newRole) {
                     </nav>
                 </div>
             </div>
+            <!-- Modale pour afficher toutes les catégories -->
+<div id="categoriesModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Fond sombre -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+
+        <!-- Contenu de la modale -->
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg font-bold mb-4">All Categories</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created At</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Updated At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalCategoriesList" class="divide-y divide-gray-200">
+    <?php if (!empty($categories)): ?>
+        <?php foreach ($categories as $category): ?>
+            <tr>
+                <!-- Nom de la catégorie -->
+                <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($category['name']) ?></td>
+
+                <!-- Date de création -->
+                <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($category['created_at']) ?></td>
+
+                <!-- Date de mise à jour -->
+                <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($category['updated_at']) ?></td>
+
+                <!-- Actions (Modifier et Supprimer) -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <!-- Formulaire pour modifier la catégorie -->
+                    <form action="update-category.php" method="POST" class="inline">
+                        <input type="hidden" name="categoryId" value="<?= $category['id'] ?>">
+                        <input 
+                            type="text" 
+                            name="newCategoryName" 
+                            value="<?= htmlspecialchars($category['name']) ?>" 
+                            class="px-2 py-1 text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800"
+                        >
+                        <button type="submit" class="text-blue-500 hover:text-blue-700 ml-2">
+                            <i class="fas fa-edit"></i> <!-- Icône de modification -->
+                        </button>
+                    </form>
+
+                    <!-- Bouton pour supprimer la catégorie -->
+                    <form action="delete-category.php" method="POST" class="inline">
+                        <input type="hidden" name="categoryId" value="<?= $category['id'] ?>">
+                        <button type="submit" class="text-red-500 hover:text-red-700 ml-2">
+                            <i class="fas fa-trash"></i> <!-- Icône de suppression -->
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="4" class="px-6 py-4 text-center text-gray-500">No categories found.</td>
+        </tr>
+    <?php endif; ?>
+</tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button onclick="closeCategoriesModal()" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-500 text-base font-medium text-white hover:bg-red-600 sm:ml-3 sm:w-auto sm:text-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modale pour afficher tous les tags -->
+<div id="tagsModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Fond sombre -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+
+        <!-- Contenu de la modale -->
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg font-bold mb-4">All Tags</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created At</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Updated At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalTagsList" class="divide-y divide-gray-200">
+    <?php if (!empty($tags)): ?>
+        <?php foreach ($tags as $tag): ?>
+            <tr>
+                <!-- Nom du tag -->
+                <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($tag['name']) ?></td>
+
+                <!-- Date de création -->
+                <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($tag['created_at']) ?></td>
+
+                <!-- Date de mise à jour -->
+                <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($tag['updated_at']) ?></td>
+
+                <!-- Actions (Modifier et Supprimer) -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <!-- Formulaire pour modifier le tag -->
+                    <form action="update-tag.php" method="POST" class="inline">
+                        <input type="hidden" name="tagId" value="<?= $tag['id'] ?>">
+                        <input 
+                            type="text" 
+                            name="newTagName" 
+                            value="<?= htmlspecialchars($tag['name']) ?>" 
+                            class="px-2 py-1 text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800"
+                        >
+                        <button type="submit" class="text-blue-500 hover:text-blue-700 ml-2">
+                            <i class="fas fa-edit"></i> <!-- Icône de modification -->
+                        </button>
+                    </form>
+
+                    <!-- Bouton pour supprimer le tag -->
+                    <form action="delete-tag.php" method="POST" class="inline">
+                        <input type="hidden" name="tagId" value="<?= $tag['id'] ?>">
+                        <button type="submit" class="text-red-500 hover:text-red-700 ml-2">
+                            <i class="fas fa-trash"></i> <!-- Icône de suppression -->
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="4" class="px-6 py-4 text-center text-gray-500">No tags found.</td>
+        </tr>
+    <?php endif; ?>
+</tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button onclick="closeTagsModal()" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-500 text-base font-medium text-white hover:bg-red-600 sm:ml-3 sm:w-auto sm:text-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
             <!-- Content Area -->
             <div class="lg:col-span-5">
@@ -536,6 +684,73 @@ if ($userId && $newRole) {
                 });
             })
             .catch(error => console.error('Error loading courses:', error));
+    }
+</script>
+<script>
+    // Fonction pour ouvrir la modale des catégories
+    function openCategoriesModal() {
+        document.getElementById('categoriesModal').classList.remove('hidden');
+        loadAllCategories();
+    }
+
+    // Fonction pour fermer la modale des catégories
+    function closeCategoriesModal() {
+        document.getElementById('categoriesModal').classList.add('hidden');
+    }
+
+    // Fonction pour charger toutes les catégories
+    function loadAllCategories() {
+        fetch('/get-all-categories.php') // Endpoint pour récupérer toutes les catégories
+            .then(response => response.json())
+            .then(data => {
+                const categoriesList = document.getElementById('modalCategoriesList');
+                categoriesList.innerHTML = ''; // Vider la liste actuelle
+
+                data.forEach(category => {
+                    const row = `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">${category.name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${category.created_at}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${category.updated_at}</td>
+                        </tr>
+                    `;
+                    categoriesList.insertAdjacentHTML('beforeend', row);
+                });
+            })
+            .catch(error => console.error('Error loading categories:', error));
+    }
+
+    // Fonction pour ouvrir la modale des tags
+    function openTagsModal() {
+        document.getElementById('tagsModal').classList.remove('hidden');
+        loadAllTags();
+    }
+
+    // Fonction pour fermer la modale des tags
+    function closeTagsModal() {
+        document.getElementById('tagsModal').classList.add('hidden');
+    }
+
+    // Fonction pour charger tous les tags
+    function loadAllTags() {
+        fetch('/get-all-tags.php') // Endpoint pour récupérer tous les tags
+            .then(response => response.json())
+            .then(data => {
+                const tagsList = document.getElementById('modalTagsList');
+                tagsList.innerHTML = ''; // Vider la liste actuelle
+
+                data.forEach(tag => {
+                    const row = `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">${tag.name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${tag.created_at}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${tag.updated_at}</td>
+                        </tr>
+                    `;
+                    tagsList.insertAdjacentHTML('beforeend', row);
+                });
+            })
+            .catch(error => console.error('Error loading tags:', error));
     }
 </script>
 </body>

@@ -73,6 +73,14 @@ class AdminController {
     public function getAllCourses(): array {
         return $this->adminModel->getAllCourses();
     }
+
+    public function getAllCategories(): array {
+        return $this->adminModel->getAllCategories();
+    }
+
+    public function getAllTags(): array {
+        return $this->adminModel->getAllTags();
+    }
     
 }
 ?>

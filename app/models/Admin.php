@@ -146,5 +146,25 @@ class Admin extends User {
             throw new RuntimeException("Error while fetching all courses.", 0, $e);
         }
     }
+
+    public function getAllCategories(): array {
+        try {
+            $stmt = $this->pdo->query("SELECT * FROM Categories ORDER BY created_at DESC");
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error fetching all categories: " . $e->getMessage());
+            throw new RuntimeException("Error while fetching all categories.", 0, $e);
+        }
+    }
+
+    public function getAllTags(): array {
+        try {
+            $stmt = $this->pdo->query("SELECT * FROM Tags ORDER BY created_at DESC");
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error fetching all tags: " . $e->getMessage());
+            throw new RuntimeException("Error while fetching all tags.", 0, $e);
+        }
+    }
 }
 ?>
