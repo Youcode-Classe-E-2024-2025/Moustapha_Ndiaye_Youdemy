@@ -63,5 +63,10 @@ class AdminController {
             return ['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()];
         }
     }
+
+
+    public function getAllUsers(): array {
+        return $this->adminModel->getAllUsers();
+    }
 }
 ?>

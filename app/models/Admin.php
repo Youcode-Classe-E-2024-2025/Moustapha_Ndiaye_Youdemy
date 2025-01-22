@@ -118,5 +118,15 @@ class Admin extends User {
             throw new RuntimeException("Error while updating user status.", 0, $e);
         }
     }
+
+    public function getAllUsers(): array {
+        try {
+            $stmt = $this->pdo->query("SELECT * FROM Users ORDER BY created_at DESC");
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error fetching all users: " . $e->getMessage());
+            throw new RuntimeException("Error while fetching all users.", 0, $e);
+        }
+    }
 }
 ?>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+// header('Content-Type: application/json');
 // Redirect to login page if user is not logged in
 if (!isset($_SESSION['user'])) {
     header('Location: /login');
@@ -52,6 +52,14 @@ if ($userId && $newRole) {
     $result = $adminController->updateUserStatus($userId, $newStatus);
 } else {
     $result = ['success' => false, 'message' => 'Invalid request.'];
+}
+
+try {
+    // Récupère tous les utilisateurs
+    $users = $adminController->getAllUsers();
+    // echo json_encode($users);
+} catch (Exception $e) {
+    echo json_encode(['error' => 'An error occurred while fetching users.']);
 }
 
 ?>
@@ -146,10 +154,92 @@ if ($userId && $newRole) {
             <div class="lg:col-span-5">
                 <!-- Recent Users Table -->
 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-    <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold">Recent Users</h2>
-        <a href="#" class="text-red-500 hover:text-red-600">View All</a>
+<div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold">Recent Users</h2>
+    <button onclick="openModal()" class="text-red-500 hover:text-red-600">View All</button>
+</div>
+<!-- Modale pour afficher tous les utilisateurs -->
+<div id="userModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Fond sombre -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+
+        <!-- Contenu de la modale -->
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg font-bold mb-4">All Users</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                <?php if (!empty($users)): ?>
+                    <?php foreach ($users as $user): ?>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['name']) ?></td>
+                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['email']) ?></td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <!-- Formulaire pour mettre à jour le rôle -->
+                                <form action="profileAdmin" method="POST" class="inline">
+                                    <input type="hidden" name="userId" value="<?= $user['id'] ?>">
+                                    <select 
+                                        name="newRole" 
+                                        class="px-2 py-1 text-xs leading-5 font-semibold rounded-full <?= $user['role'] === 'Admin' ? 'bg-purple-100 text-purple-800' : ($user['role'] === 'Instructor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') ?>"
+                                        onchange="this.form.submit()"
+                                    >
+                                        <option value="Student" <?= $user['role'] === 'Student' ? 'selected' : '' ?>>Student</option>
+                                        <option value="Instructor" <?= $user['role'] === 'Instructor' ? 'selected' : '' ?>>Instructor</option>
+                                        <option value="Admin" <?= $user['role'] === 'Admin' ? 'selected' : '' ?>>Admin</option>
+                                    </select>
+                                </form>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <!-- Formulaire pour mettre à jour le statut -->
+                                <form action="profileAdmin" method="POST" class="inline">
+                                    <input type="hidden" name="userId" value="<?= $user['id'] ?>">
+                                    <select 
+                                        name="newStatus" 
+                                        class="px-2 py-1 text-xs leading-5 font-semibold rounded-full <?= $user['status'] === 'Active' ? 'bg-green-100 text-green-800' : ($user['status'] === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') ?>"
+                                        onchange="this.form.submit()"
+                                    >
+                                        <option value="Active" <?= $user['status'] === 'Active' ? 'selected' : '' ?>>Active</option>
+                                        <option value="Pending" <?= $user['status'] === 'Pending' ? 'selected' : '' ?>>Pending</option>
+                                        <option value="Suspended" <?= $user['status'] === 'Suspended' ? 'selected' : '' ?>>Suspended</option>
+                                    </select>
+                                </form>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <button class="text-red-500 hover:text-red-700">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No recent users found.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button onclick="closeModal()" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-500 text-base font-medium text-white hover:bg-red-600 sm:ml-3 sm:w-auto sm:text-sm">
+                    Close
+                </button>
+            </div>
+        </div>
     </div>
+</div>
     <div class="overflow-x-auto">
         <table class="min-w-full bg-white">
             <thead class="bg-gray-50">
@@ -321,5 +411,40 @@ if ($userId && $newRole) {
         </div>
     </div>
 </footer>
+<script>
+    // Fonction pour ouvrir la modale
+    function openModal() {
+        document.getElementById('userModal').classList.remove('hidden');
+        loadAllUsers();
+    }
+
+    // Fonction pour fermer la modale
+    function closeModal() {
+        document.getElementById('userModal').classList.add('hidden');
+    }
+
+    // Fonction pour charger tous les utilisateurs
+    function loadAllUsers() {
+        fetch('/get-all-users.php') // Endpoint pour récupérer tous les utilisateurs
+            .then(response => response.json())
+            .then(data => {
+                const userList = document.getElementById('modalUserList');
+                userList.innerHTML = ''; // Vider la liste actuelle
+
+                data.forEach(user => {
+                    const row = `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">${user.name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${user.email}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${user.role}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${user.status}</td>
+                        </tr>
+                    `;
+                    userList.insertAdjacentHTML('beforeend', row);
+                });
+            })
+            .catch(error => console.error('Error loading users:', error));
+    }
+</script>
 </body>
 </html>
