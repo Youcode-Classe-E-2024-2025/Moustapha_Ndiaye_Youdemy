@@ -80,5 +80,43 @@ class Admin extends User {
             throw new RuntimeException("Error while fetching recent courses.", 0, $e);
         }
     }
+
+    /**
+     * Met à jour le rôle d'un utilisateur.
+     *
+     * @param int $userId
+     * @param string $newRole
+     * @return bool
+     */
+    public function updateUserRole(int $userId, string $newRole): bool {
+        try {
+            $sql = "UPDATE Users SET role = :role WHERE id = :id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute(['role' => $newRole, 'id' => $userId]);
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            error_log("Error updating user role: " . $e->getMessage());
+            throw new RuntimeException("Error while updating user role.", 0, $e);
+        }
+    }
+
+    /**
+     * Met à jour le statut d'un utilisateur.
+     *
+     * @param int $userId
+     * @param string $newStatus
+     * @return bool
+     */
+    public function updateUserStatus(int $userId, string $newStatus): bool {
+        try {
+            $sql = "UPDATE Users SET status = :status WHERE id = :id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute(['status' => $newStatus, 'id' => $userId]);
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            error_log("Error updating user status: " . $e->getMessage());
+            throw new RuntimeException("Error while updating user status.", 0, $e);
+        }
+    }
 }
 ?>

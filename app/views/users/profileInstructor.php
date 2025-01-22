@@ -29,19 +29,23 @@ $categories = $courseController->getCategories(); // Récupérer les catégories
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
 </head>
 <body class="bg-gray-200">
-    <!-- Header -->
-    <header class="">
+     <!-- Header -->
+     <header class="bg-white shadow-sm">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <!-- Logo -->
-            <div class="flex text-3xl font-bold text-white bg-slate-300 rounded-sm">
-                <div class="bg-red-500 px-1 rounded-md">You</div>
-                <div class="">demy</div>
-            </div>
+            <a href="/" class="flex text-3xl font-bold">
+                <span class="bg-red-500 text-white px-2 rounded-l-md">You</span>
+                <span class="bg-gray-100 px-2 rounded-r-md">demy</span>
+            </a>
             <!-- User Menu -->
-            <div class="flex items-center space-x-4">
-                <span class="text-gray-600"><?= htmlspecialchars($user['email']) ?></span>
-                <a href="/logout" class="text-red-500 hover:text-red-600">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+            <div class="flex items-center space-x-6">
+                <span class="text-gray-600">
+                    <i class="fas fa-user mr-2"></i>
+                    <?= htmlspecialchars($user['email']) ?>
+                </span>
+                <a href="/logout" class="flex items-center text-red-500 hover:text-red-600 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    Logout
                 </a>
             </div>
         </div>

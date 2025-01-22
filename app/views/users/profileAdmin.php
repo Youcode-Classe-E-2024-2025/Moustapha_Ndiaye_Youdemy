@@ -1,5 +1,20 @@
 <?php
-// Inclut les dépendances nécessaires
+session_start();
+
+// Redirect to login page if user is not logged in
+if (!isset($_SESSION['user'])) {
+    header('Location: /login');
+    exit();
+}
+
+$user = $_SESSION['user'];
+
+// Check the user's role
+if ($user['role'] !== 'Admin') {
+    header('Location: /unauthorized');
+    exit();
+}
+// Include necessary dependencies
 require_once __DIR__ . '/../../core/Database.php';
 require_once __DIR__ . '/../../models/Admin.php';
 require_once __DIR__ . '/../../controllers/AdminController.php';
@@ -8,7 +23,7 @@ require_once __DIR__ . '/../../controllers/AdminController.php';
 // Create instance for Database
 $database = Database::getInstance();
 
-// Récupère l'objet PDO
+// Get the PDO object
 $pdo = $database->getPdo();
 
 // Create instance for AdminController
@@ -23,6 +38,22 @@ try {
     // require __DIR__ . '/../views/errors/500.php';
     exit;
 }
+
+// Get the form data
+$userId = $_POST['userId'] ?? null;
+$newRole = $_POST['newRole'] ?? null;
+$newStatus = $_POST['newStatus'] ?? null;
+
+if ($userId && $newRole) {
+    // Update the user's role
+    $result = $adminController->updateUserRole($userId, $newRole);
+} elseif ($userId && $newStatus) {
+    // Update user status
+    $result = $adminController->updateUserStatus($userId, $newStatus);
+} else {
+    $result = ['success' => false, 'message' => 'Invalid request.'];
+}
+
 ?>
 
 
@@ -37,18 +68,22 @@ try {
 </head>
 <body class="bg-gray-200">
     <!-- Header -->
-    <header class="">
+    <header class="bg-white shadow-sm">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <!-- Logo -->
-            <div class="flex text-3xl font-bold text-white bg-slate-300 rounded-sm">
-                <div class="bg-red-500  px-1 rounded-md">You</div>
-                <div class="">demy</div>
-            </div>
+            <a href="/" class="flex text-3xl font-bold">
+                <span class="bg-red-500 text-white px-2 rounded-l-md">You</span>
+                <span class="bg-gray-100 px-2 rounded-r-md">demy</span>
+            </a>
             <!-- User Menu -->
-            <div class="flex items-center space-x-4">
-                <span class="text-gray-600">admin@youdemy.com</span>
-                <a href="#" class="text-red-500 hover:text-red-600">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+            <div class="flex items-center space-x-6">
+                <span class="text-gray-600">
+                    <i class="fas fa-user mr-2"></i>
+                    <?= htmlspecialchars($user['email']) ?>
+                </span>
+                <a href="/logout" class="flex items-center text-red-500 hover:text-red-600 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    Logout
                 </a>
             </div>
         </div>
@@ -110,65 +145,74 @@ try {
             <!-- Content Area -->
             <div class="lg:col-span-5">
                 <!-- Recent Users Table -->
-                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold">Recent Users</h2>
-                        <a href="#" class="text-red-500 hover:text-red-600">View All</a>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                <?php if (!empty($recentUsers)): ?>
-                                    <?php foreach ($recentUsers as $user): ?>
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['name']) ?></td>
-                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['email']) ?></td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                            <select 
-                                                class="px-2 py-1 text-xs leading-5 font-semibold rounded-full <?= $user['role'] === 'Admin' ? 'bg-purple-100 text-purple-800' : ($user['role'] === 'Instructor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') ?>"
-                                                onchange="updateRole(this, <?= $user['id'] ?>)"
-                                            >
-                                                <option value="Student" <?= $user['role'] === 'Student' ? 'selected' : '' ?>>Student</option>
-                                                <option value="Instructor" <?= $user['role'] === 'Instructor' ? 'selected' : '' ?>>Instructor</option>
-                                                <option value="Admin" <?= $user['role'] === 'Admin' ? 'selected' : '' ?>>Admin</option>
-                                            </select>
-                                        </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <select 
-                                                    class="px-2 py-1 text-xs leading-5 font-semibold rounded-full <?= $user['status'] === 'Active' ? 'bg-green-100 text-green-800' : ($user['status'] === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') ?>"
-                                                    onchange="updateStatus(this, <?= $user['id'] ?>)"
-                                                >
-                                                    <option value="Active" <?= $user['status'] === 'Active' ? 'selected' : '' ?>>Active</option>
-                                                    <option value="Pending" <?= $user['status'] === 'Pending' ? 'selected' : '' ?>>Pending</option>
-                                                    <option value="Suspended" <?= $user['status'] === 'Suspended' ? 'selected' : '' ?>>Suspended</option>
-                                                </select>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                
-                                                <button class="text-red-500 hover:text-red-700">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No recent users found.</td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Recent Users</h2>
+        <a href="#" class="text-red-500 hover:text-red-600">View All</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                <?php if (!empty($recentUsers)): ?>
+                    <?php foreach ($recentUsers as $user): ?>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['name']) ?></td>
+                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['email']) ?></td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <!-- Formulaire pour mettre à jour le rôle -->
+                                <form action="profileAdmin" method="POST" class="inline">
+                                    <input type="hidden" name="userId" value="<?= $user['id'] ?>">
+                                    <select 
+                                        name="newRole" 
+                                        class="px-2 py-1 text-xs leading-5 font-semibold rounded-full <?= $user['role'] === 'Admin' ? 'bg-purple-100 text-purple-800' : ($user['role'] === 'Instructor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') ?>"
+                                        onchange="this.form.submit()"
+                                    >
+                                        <option value="Student" <?= $user['role'] === 'Student' ? 'selected' : '' ?>>Student</option>
+                                        <option value="Instructor" <?= $user['role'] === 'Instructor' ? 'selected' : '' ?>>Instructor</option>
+                                        <option value="Admin" <?= $user['role'] === 'Admin' ? 'selected' : '' ?>>Admin</option>
+                                    </select>
+                                </form>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <!-- Formulaire pour mettre à jour le statut -->
+                                <form action="profileAdmin" method="POST" class="inline">
+                                    <input type="hidden" name="userId" value="<?= $user['id'] ?>">
+                                    <select 
+                                        name="newStatus" 
+                                        class="px-2 py-1 text-xs leading-5 font-semibold rounded-full <?= $user['status'] === 'Active' ? 'bg-green-100 text-green-800' : ($user['status'] === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') ?>"
+                                        onchange="this.form.submit()"
+                                    >
+                                        <option value="Active" <?= $user['status'] === 'Active' ? 'selected' : '' ?>>Active</option>
+                                        <option value="Pending" <?= $user['status'] === 'Pending' ? 'selected' : '' ?>>Pending</option>
+                                        <option value="Suspended" <?= $user['status'] === 'Suspended' ? 'selected' : '' ?>>Suspended</option>
+                                    </select>
+                                </form>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <button class="text-red-500 hover:text-red-700">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No recent users found.</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 
                 <!-- Recent Courses Table -->
                 <div class="bg-white rounded-lg shadow-md p-6">
