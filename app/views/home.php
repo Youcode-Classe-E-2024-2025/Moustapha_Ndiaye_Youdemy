@@ -187,9 +187,11 @@ if (isset($_GET['category'])) {
                     <p class="text-gray-600">
                         <?= htmlspecialchars($course['description']) ?>
                     </p>
-                    <button class="text-red-500 font-semibold hover:text-red-600 transition-colors">
+                   <a href="/login">
+                   <button class="text-red-500 font-semibold hover:text-red-600 transition-colors">
                         Learn more →
                     </button>
+                   </a>
                 </div>
             </div>
         <?php endforeach; ?>

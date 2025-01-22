@@ -6,6 +6,16 @@ if (!isset($_SESSION['user'])) {
     exit();
 }
 $user = $_SESSION['user'];
+
+// Inclure le contrôleur
+require_once __DIR__ . '/../../controllers/CourseController.php';
+$courseController = new CourseController();
+
+// Récupérer les données dynamiques
+$stats = $courseController->getCourseStatistics($user['id']);
+$recentCourses = $courseController->getRecentCourses($user['id']);
+$recentStudents = $courseController->getRecentStudents($user['id']);
+$categories = $courseController->getCategories(); // Récupérer les catégories pour le formulaire
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -15,6 +25,8 @@ $user = $_SESSION['user'];
     <title>Instructor Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- SimpleMDE Markdown Editor CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
 </head>
 <body class="bg-gray-200">
     <!-- Header -->
@@ -22,12 +34,12 @@ $user = $_SESSION['user'];
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <!-- Logo -->
             <div class="flex text-3xl font-bold text-white bg-slate-300 rounded-sm">
-                <div class="bg-red-500  px-1 rounded-md">You</div>
+                <div class="bg-red-500 px-1 rounded-md">You</div>
                 <div class="">demy</div>
             </div>
             <!-- User Menu -->
             <div class="flex items-center space-x-4">
-                <span class="text-gray-600"><?php echo htmlspecialchars($user['email']); ?></span>
+                <span class="text-gray-600"><?= htmlspecialchars($user['email']) ?></span>
                 <a href="/logout" class="text-red-500 hover:text-red-600">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
@@ -37,23 +49,62 @@ $user = $_SESSION['user'];
 
     <!-- Main Content -->
     <main class="container mx-auto px-6 py-8">
-        <!-- Dashboard Stats -->
+        <!-- Messages de succès ou d'erreur -->
+        <?php if (isset($_GET['success'])): ?>
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <span class="block sm:inline"><?= htmlspecialchars($_GET['success']) ?></span>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['error'])): ?>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <span class="block sm:inline"><?= htmlspecialchars($_GET['error']) ?></span>
+            </div>
+        <?php endif; ?>
+
+        <!-- Statistiques du tableau de bord -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Total des cours -->
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <h3 class="text-lg font-semibold text-gray-700">Total Courses</h3>
-                <p class="text-3xl font-bold text-red-500">12</p>
+                <p class="text-3xl font-bold text-red-500"><?= htmlspecialchars($stats['total_courses']) ?></p>
             </div>
+            <!-- Total des étudiants -->
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <h3 class="text-lg font-semibold text-gray-700">Total Students</h3>
-                <p class="text-3xl font-bold text-red-500">345</p>
+                <p class="text-3xl font-bold text-red-500"><?= htmlspecialchars($stats['total_students']) ?></p>
             </div>
+            <!-- Taux d'engagement -->
             <div class="bg-white p-6 rounded-lg shadow-md">
                 <h3 class="text-lg font-semibold text-gray-700">Engagement Rate</h3>
-                <p class="text-3xl font-bold text-red-500">78%</p>
+                <p class="text-3xl font-bold text-red-500"><?= htmlspecialchars($stats['engagement_rate']) ?>%</p>
             </div>
         </div>
 
-        <!-- Recent Courses and Students -->
+        <!-- Button to Open Modal -->
+        <button onclick="openModal()" class="mt-4 ml-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+            <i class="fas fa-plus mr-2"></i> Add Course
+        </button>
+
+        <!-- Modal -->
+        <div id="addCourseModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Background -->
+                <div class="fixed inset-0 bg-black bg-opacity-50" onclick="closeModal()"></div>
+                <!-- Content -->
+                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <h3 class="text-lg font-medium leading-6 text-gray-900">Add New Course</h3>
+                        <form method="POST" action="/save-course" class="mt-4 space-y-4" enctype="multipart/form-data">
+                            <!-- Form fields (title, category, description, content, thumbnail) -->
+                            <textarea id="content" name="content" rows="10"></textarea>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cours récents et étudiants récents -->
         <div class="grid grid-cols-1 lg:grid-cols-6 gap-6">
             <!-- Sidebar -->
             <div class="lg:col-span-1">
@@ -78,9 +129,9 @@ $user = $_SESSION['user'];
                 </div>
             </div>
 
-            <!-- Content Area -->
+            <!-- Zone de contenu -->
             <div class="lg:col-span-5">
-                <!-- Recent Courses Table -->
+                <!-- Tableau des cours récents -->
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-bold">Recent Courses</h2>
@@ -97,26 +148,30 @@ $user = $_SESSION['user'];
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">Introduction to Web Development</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">Development</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">42</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <button class="text-blue-500 hover:text-blue-700 mr-2">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="text-red-500 hover:text-red-700">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <!-- Repeat rows as needed -->
+                                <?php foreach ($recentCourses as $course): ?>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($course['title']) ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($course['category']) ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($course['students']) ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <a href="/edit-course/<?= htmlspecialchars($course['id']) ?>" class="text-blue-500 hover:text-blue-700 mr-2">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form method="POST" action="/delete-course" class="inline">
+                                                <input type="hidden" name="course_id" value="<?= htmlspecialchars($course['id']) ?>">
+                                                <button type="submit" class="text-red-500 hover:text-red-700">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Recent Students Table -->
+                <!-- Tableau des étudiants récents -->
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-bold">Recent Students</h2>
@@ -133,20 +188,24 @@ $user = $_SESSION['user'];
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">John Doe</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">john@example.com</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">75%</td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <button class="text-blue-500 hover:text-blue-700 mr-2">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="text-red-500 hover:text-red-700">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <!-- Repeat rows as needed -->
+                                <?php foreach ($recentStudents as $student): ?>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($student['name']) ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($student['email']) ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($student['progress']) ?>%</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <a href="/view-student/<?= htmlspecialchars($student['id']) ?>" class="text-blue-500 hover:text-blue-700 mr-2">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <form method="POST" action="/delete-student" class="inline">
+                                                <input type="hidden" name="student_id" value="<?= htmlspecialchars($student['id']) ?>">
+                                                <button type="submit" class="text-red-500 hover:text-red-700">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
@@ -157,64 +216,89 @@ $user = $_SESSION['user'];
 
     <!-- Footer -->
     <footer class="bg-white rounded-md shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-12 md:py-16">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <!-- Contact Info -->
-            <div class="space-y-4">
-                <h3 class="text-xl font-bold mb-4">Contact</h3>
-                <div class="flex items-center space-x-3">
-                    <i data-lucide="mail" class="w-5 h-5 text-red-500"></i>
-                    <a href="mailto:hello@Youdemy.com" class="hover:text-red-500 transition-colors">
-                        hello@Youdemy.com
-                    </a>
+        <div class="max-w-7xl mx-auto px-4 py-12 md:py-16">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Contact Info -->
+                <div class="space-y-4">
+                    <h3 class="text-xl font-bold mb-4">Contact</h3>
+                    <div class="flex items-center space-x-3">
+                        <i data-lucide="mail" class="w-5 h-5 text-red-500"></i>
+                        <a href="mailto:hello@Youdemy.com" class="hover:text-red-500 transition-colors">
+                            hello@Youdemy.com
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Training</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="hover:text-red-500 transition-colors">Our Courses</a></li>
+                        <li><a href="#" class="hover:text-red-500 transition-colors">Hackerspaces</a></li>
+                        <li><a href="#" class="hover:text-red-500 transition-colors">Youdemy</a></li>
+                    </ul>
+                </div>
+
+                <!-- Social Media -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Follow Us</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="hover:text-red-500 transition-colors">
+                            <i data-lucide="facebook" class="w-6 h-6"></i>
+                        </a>
+                        <a href="#" class="hover:text-red-500 transition-colors">
+                            <i data-lucide="instagram" class="w-6 h-6"></i>
+                        </a>
+                        <a href="#" class="hover:text-red-500 transition-colors">
+                            <i data-lucide="linkedin" class="w-6 h-6"></i>
+                        </a>
+                        <a href="#" class="hover:text-red-500 transition-colors">
+                            <i data-lucide="twitter" class="w-6 h-6"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <!-- Quick Links 1 -->
-            <div>
-                <h3 class="text-xl font-bold mb-4">Training</h3>
-                <ul class="space-y-3">
-                    <li><a href="#" class="hover:text-red-500 transition-colors">Our Courses</a></li>
-                    <li><a href="#" class="hover:text-red-500 transition-colors">Hackerspaces</a></li>
-                    <li><a href="#" class="hover:text-red-500 transition-colors">Youdemy</a></li>
-                </ul>
-            </div>
-
-            <!-- Quick Links 2 -->
-            <div>
-                <h3 class="text-xl font-bold mb-4">About</h3>
-                <ul class="space-y-3">
-                    <li><a href="#" class="hover:text-red-500 transition-colors">Discover Youdemy</a></li>
-                    <li><a href="#" class="hover:text-red-500 transition-colors">Careers</a></li>
-                    <li><a href="#" class="hover:text-red-500 transition-colors">Youdemy Policies</a></li>
-                </ul>
-            </div>
-
-            <!-- Social Media -->
-            <div>
-                <h3 class="text-xl font-bold mb-4">Follow Us</h3>
-                <div class="flex space-x-4">
-                    <a href="#" class="hover:text-red-500 transition-colors">
-                        <i data-lucide="facebook" class="w-6 h-6"></i>
-                    </a>
-                    <a href="#" class="hover:text-red-500 transition-colors">
-                        <i data-lucide="instagram" class="w-6 h-6"></i>
-                    </a>
-                    <a href="#" class="hover:text-red-500 transition-colors">
-                        <i data-lucide="linkedin" class="w-6 h-6"></i>
-                    </a>
-                    <a href="#" class="hover:text-red-500 transition-colors">
-                        <i data-lucide="twitter" class="w-6 h-6"></i>
-                    </a>
-                </div>
+            <!-- Bottom Bar -->
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center text-sm">
+                <p> &copy; 2025 Youdemy. All rights reserved.</p>
             </div>
         </div>
+    </footer>
 
-        <!-- Bottom Bar -->
-        <div class="border-t border-gray-800 mt-12 pt-8 text-center text-sm">
-            <p> &copy; 2025 Youdemy. All rights reserved.</p>
-        </div>
-    </div>
-</footer>
+    <!-- SimpleMDE Markdown Editor JS -->
+    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+    <script>
+        // Initialize Markdown Editor
+        const simplemde = new SimpleMDE({
+            element: document.getElementById("content"),
+            spellChecker: false,
+            toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "preview", "guide"],
+        });
+
+        // Modal Handling
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('addCourseModal');
+
+            function openModal() {
+                console.log("Opening modal..."); // Debugging
+                modal.classList.remove('hidden'); // Remove the 'hidden' class
+            }
+
+            function closeModal() {
+                modal.classList.add('hidden'); // Add the 'hidden' class
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            };
+
+            // Expose openModal to the global scope
+            window.openModal = openModal;
+        });
+    </script>
 </body>
 </html>

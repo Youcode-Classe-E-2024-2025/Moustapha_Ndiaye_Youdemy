@@ -41,5 +41,52 @@ class CourseController {
     public function getCategories(): array {
         return $this->studentModel->getCategories();
     }
+
+            /**
+         * Enroll the current student in a course.
+         * @param int $courseId
+         * @param int $studentId
+         * @return string
+         */
+        public function enrollCourse(int $courseId, int $studentId): string {
+            try {
+                $result = $this->studentModel->enrollStudent($courseId, $studentId);
+                if ($result) {
+                    return "Enrollment successful!";
+                } else {
+                    throw new Exception("Failed to enroll in the course.");
+                }
+            } catch (Exception $e) {
+                throw new Exception($e->getMessage());
+            }
+        }
+
+
+            /**
+ * Get course statistics for the logged-in instructor.
+ * @return array
+ */
+public function getCourseStatistics(): array {
+    $instructorId = $_SESSION['user']['id']; // Get the logged-in instructor's ID
+    return $this->studentModel->getCourseStatistics($instructorId);
+}
+
+    /**
+ * Get recent courses created by the logged-in instructor.
+ * @return array
+ */
+public function getRecentCourses(): array {
+    $instructorId = $_SESSION['user']['id']; // Get the logged-in instructor's ID
+    return $this->studentModel->getRecentCourses($instructorId);
+}
+
+/**
+ * Get recent students enrolled in courses created by the logged-in instructor.
+ * @return array
+ */
+public function getRecentStudents(): array {
+    $instructorId = $_SESSION['user']['id']; // Get the logged-in instructor's ID
+    return $this->studentModel->getRecentStudents($instructorId);
+}
 }
 ?>

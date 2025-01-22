@@ -31,6 +31,25 @@ if (isset($_GET['category'])) {
     $category = $_GET['category'];
     $courses = $studentController->getCoursesByCategory($category);
 }
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $courseId = $_POST['course_id'] ?? null;
+    $studentId = $_POST['student_id'] ?? null;
+
+    // Valider les données
+    if (empty($courseId) || empty($studentId)) {
+        $errors[] = "Course ID and Student ID are required.";
+    } else {
+        try {
+            $message = $studentController->enrollCourse((int)$courseId, (int)$studentId);
+            header('Location: /profileStudent?success=' . urlencode($message));
+            exit();
+        } catch (Exception $e) {
+            $errors[] = $e->getMessage();
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -74,53 +93,85 @@ if (isset($_GET['category'])) {
                 >
             </form>
         </div>
+        <?php if (isset($_GET['success'])): ?>
+    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+        <p><?= htmlspecialchars($_GET['success'], ENT_QUOTES, 'UTF-8') ?></p>
+    </div>
+<?php endif; ?>
 
-        <!-- Filters -->
-        <div class="sticky top-0 z-50 p-4 bg-white shadow-md mb-8">
+<?php if (isset($errors)): ?>
+    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
+        <p class="font-medium">Error</p>
+        <?php foreach ($errors as $error): ?>
+            <p><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+
+       
+
+<section class="p-4 md:p-8 lg:p-12 bg-gray-50 rounded-md">
+                            <!-- Courses Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <!-- Filters -->
+    <div class="sticky top-0 z-50 p-4 bg-white/80 backdrop-blur-sm w-full col-span-full">
+        <div class="max-w-7xl mx-auto">
             <div class="flex flex-wrap gap-4 justify-center">
-                <!-- <a href="?category=all" class="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors">
+                <!-- "All" Button -->
+                <!-- <a href="?category=all" 
+                   class="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-300">
                     All
                 </a> -->
+                <!-- Category Buttons -->
                 <?php foreach ($categories as $category): ?>
-                    <a href="?category=<?= urlencode($category) ?>" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors">
-                        <?= htmlspecialchars($category) ?>
+                    <a href="?category=<?= htmlspecialchars(urlencode($category), ENT_QUOTES, 'UTF-8') ?>" 
+                       class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-red-500 hover:text-white transition-colors duration-300">
+                        <?= htmlspecialchars($category, ENT_QUOTES, 'UTF-8') ?>
                     </a>
                 <?php endforeach; ?>
             </div>
         </div>
+    </div>
 
-        <!-- Courses Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <?php if (!empty($courses)): ?>
-                <?php foreach ($courses as $course): ?>
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-transform hover:scale-105">
-                        <div class="h-48 overflow-hidden">
-                            <img 
-                                src="<?= htmlspecialchars($course['image_uri']) ?>" 
-                                alt="<?= htmlspecialchars($course['title']) ?>" 
-                                class="w-full h-full object-cover"
-                            >
-                        </div>
-                        <div class="p-6 space-y-4">
-                            <h3 class="text-xl font-bold text-gray-800">
-                                <?= htmlspecialchars($course['title']) ?>
-                            </h3>
-                            <p class="text-gray-600">
-                                <?= htmlspecialchars($course['description']) ?>
-                            </p>
-                            <a href="/course/<?= htmlspecialchars($course['id']) ?>" class="text-red-500 font-semibold hover:text-red-600 transition-colors">
-                                Enroll Now →
-                            </a>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="col-span-full text-center py-8">
-                    <p class="text-gray-600">Aucun cours disponible.</p>
+    <!-- Courses List -->
+    <?php if (!empty($courses)): ?>
+        <?php foreach ($courses as $course): ?>
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                <div class="relative h-48 overflow-hidden">
+                    <img src="<?= htmlspecialchars($course['image_uri'], ENT_QUOTES, 'UTF-8') ?>"
+                         alt="<?= htmlspecialchars($course['title'], ENT_QUOTES, 'UTF-8') ?>"
+                         class="w-full h-full object-cover"
+                         loading="lazy">
                 </div>
-            <?php endif; ?>
+                <div class="p-6 space-y-4">
+                    <h3 class="text-xl font-bold text-gray-800">
+                        <?= htmlspecialchars($course['title'], ENT_QUOTES, 'UTF-8') ?>
+                    </h3>
+                    <p class="text-gray-600 line-clamp-3">
+                        <?= htmlspecialchars($course['description'], ENT_QUOTES, 'UTF-8') ?>
+                    </p>
+                    <!-- <a href="/course/<?= htmlspecialchars($course['id'], ENT_QUOTES, 'UTF-8') ?>" 
+                       class="inline-block text-red-500 font-semibold hover:text-red-600 transition-colors duration-300">
+                        Enroll Now →
+                    </a> -->
+                    <form method="POST" action="/profileStudent" class="inline">
+                        <input type="hidden" name="course_id" value="<?= htmlspecialchars($course['id']) ?>">
+                        <input type="hidden" name="student_id" value="<?= htmlspecialchars($_SESSION['user']['id']) ?>">
+                        <button type="submit" class="inline-block text-red-500 font-semibold hover:text-red-600 transition-colors duration-300">
+                            Enroll Now →
+                        </button>
+                    </form>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <div class="col-span-full text-center py-12">
+            <p class="text-gray-600">No courses available at the moment.</p>
         </div>
-    </main>
+    <?php endif; ?>
+</div>
+
+</section>    </main>
 
     <!-- Footer -->
     <footer class="bg-white rounded-md shadow-md">
