@@ -128,5 +128,23 @@ class Admin extends User {
             throw new RuntimeException("Error while fetching all users.", 0, $e);
         }
     }
+
+    public function getAllCourses(): array {
+        try {
+            $stmt = $this->pdo->query("
+                SELECT Courses.title, Categories.name AS category, Users.name AS instructor, COUNT(Enrollments.id) AS students
+                FROM Courses
+                LEFT JOIN Categories ON Courses.category_id = Categories.id
+                LEFT JOIN Users ON Courses.instructor_id = Users.id
+                LEFT JOIN Enrollments ON Courses.id = Enrollments.course_id
+                GROUP BY Courses.id
+                ORDER BY Courses.created_at DESC
+            ");
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error fetching all courses: " . $e->getMessage());
+            throw new RuntimeException("Error while fetching all courses.", 0, $e);
+        }
+    }
 }
 ?>

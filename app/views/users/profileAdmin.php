@@ -34,6 +34,8 @@ try {
     $statistics = $adminController->getGlobalStatistics();
     $recentUsers = $adminController->getRecentUsers();
     $recentCourses = $adminController->getRecentCourses();
+    $users = $adminController->getAllUsers();
+    $courses = $adminController->getAllCourses();
 } catch (Exception $e) {
     // require __DIR__ . '/../views/errors/500.php';
     exit;
@@ -54,13 +56,13 @@ if ($userId && $newRole) {
     $result = ['success' => false, 'message' => 'Invalid request.'];
 }
 
-try {
-    // Récupère tous les utilisateurs
-    $users = $adminController->getAllUsers();
-    // echo json_encode($users);
-} catch (Exception $e) {
-    echo json_encode(['error' => 'An error occurred while fetching users.']);
-}
+// try {
+//     // Récupère tous les utilisateurs
+    
+//     // echo json_encode($users);
+// } catch (Exception $e) {
+//     echo json_encode(['error' => 'An error occurred while fetching users.']);
+// }
 
 ?>
 
@@ -306,10 +308,65 @@ try {
 
                 <!-- Recent Courses Table -->
                 <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold">Recent Courses</h2>
-                        <a href="#" class="text-red-500 hover:text-red-600">View All</a>
-                    </div>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Recent Courses</h2>
+                    <button onclick="openCourseModal()" class="text-red-500 hover:text-red-600">View All</button>
+                </div>
+                <!-- Modale pour afficher tous les cours -->
+<div id="courseModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Fond sombre -->
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+
+        <!-- Contenu de la modale -->
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <h3 class="text-lg font-bold mb-4">All Courses</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Instructor</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Students</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                                <?php if (!empty($courses)): ?>
+                                    <?php foreach ($courses as $course): ?>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($course['title']) ?></td>
+                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($course['category']) ?></td>
+                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($course['instructor']) ?></td>
+                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($course['students']) ?></td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                
+                                                <button class="text-red-500 hover:text-red-700">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No recent courses found.</td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button onclick="closeCourseModal()" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-500 text-base font-medium text-white hover:bg-red-600 sm:ml-3 sm:w-auto sm:text-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full bg-white">
                             <thead class="bg-gray-50">
@@ -444,6 +501,41 @@ try {
                 });
             })
             .catch(error => console.error('Error loading users:', error));
+    }
+</script>
+<script>
+    // Fonction pour ouvrir la modale des cours
+    function openCourseModal() {
+        document.getElementById('courseModal').classList.remove('hidden');
+        loadAllCourses();
+    }
+
+    // Fonction pour fermer la modale des cours
+    function closeCourseModal() {
+        document.getElementById('courseModal').classList.add('hidden');
+    }
+
+    // Fonction pour charger tous les cours
+    function loadAllCourses() {
+        fetch('/get-all-courses.php') // Endpoint pour récupérer tous les cours
+            .then(response => response.json())
+            .then(data => {
+                const courseList = document.getElementById('modalCourseList');
+                courseList.innerHTML = ''; // Vider la liste actuelle
+
+                data.forEach(course => {
+                    const row = `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">${course.title}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${course.category}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${course.instructor}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${course.students}</td>
+                        </tr>
+                    `;
+                    courseList.insertAdjacentHTML('beforeend', row);
+                });
+            })
+            .catch(error => console.error('Error loading courses:', error));
     }
 </script>
 </body>

@@ -68,5 +68,11 @@ class AdminController {
     public function getAllUsers(): array {
         return $this->adminModel->getAllUsers();
     }
+
+
+    public function getAllCourses(): array {
+        return $this->adminModel->getAllCourses();
+    }
+    
 }
 ?>
