@@ -132,16 +132,28 @@ try {
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['name']) ?></td>
                                             <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['email']) ?></td>
-                                            <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($user['role']) ?></td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?= $user['status'] === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
-                                                    <?= htmlspecialchars($user['status']) ?>
-                                                </span>
+                                            <select 
+                                                class="px-2 py-1 text-xs leading-5 font-semibold rounded-full <?= $user['role'] === 'Admin' ? 'bg-purple-100 text-purple-800' : ($user['role'] === 'Instructor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') ?>"
+                                                onchange="updateRole(this, <?= $user['id'] ?>)"
+                                            >
+                                                <option value="Student" <?= $user['role'] === 'Student' ? 'selected' : '' ?>>Student</option>
+                                                <option value="Instructor" <?= $user['role'] === 'Instructor' ? 'selected' : '' ?>>Instructor</option>
+                                                <option value="Admin" <?= $user['role'] === 'Admin' ? 'selected' : '' ?>>Admin</option>
+                                            </select>
+                                        </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <select 
+                                                    class="px-2 py-1 text-xs leading-5 font-semibold rounded-full <?= $user['status'] === 'Active' ? 'bg-green-100 text-green-800' : ($user['status'] === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') ?>"
+                                                    onchange="updateStatus(this, <?= $user['id'] ?>)"
+                                                >
+                                                    <option value="Active" <?= $user['status'] === 'Active' ? 'selected' : '' ?>>Active</option>
+                                                    <option value="Pending" <?= $user['status'] === 'Pending' ? 'selected' : '' ?>>Pending</option>
+                                                    <option value="Suspended" <?= $user['status'] === 'Suspended' ? 'selected' : '' ?>>Suspended</option>
+                                                </select>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <button class="text-blue-500 hover:text-blue-700 mr-2">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
+                                                
                                                 <button class="text-red-500 hover:text-red-700">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
@@ -184,9 +196,7 @@ try {
                                             <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($course['instructor']) ?></td>
                                             <td class="px-6 py-4 whitespace-nowrap"><?= htmlspecialchars($course['students']) ?></td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <button class="text-blue-500 hover:text-blue-700 mr-2">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
+                                                
                                                 <button class="text-red-500 hover:text-red-700">
                                                     <i class="fas fa-trash"></i>
                                                 </button>

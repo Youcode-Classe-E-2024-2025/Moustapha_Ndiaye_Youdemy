@@ -16,6 +16,9 @@ class CourseController {
         return $this->studentModel->getAllCourses();
     }
 
+    public function getAllCoursesByUsers(int $studentId): array {
+        return $this->studentModel->getAllCoursesByUsers($studentId);
+    }
     /**
      * Récupère les cours par catégorie.
      * @param string $category

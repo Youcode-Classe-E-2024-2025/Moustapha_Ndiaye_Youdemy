@@ -28,6 +28,18 @@ class Course{
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getAllCoursesByUsers(int $studentId): array {
+        $query = "
+            SELECT c.id, c.title, c.description, c.category_id, e.enrollment_date
+            FROM Enrollments e
+            JOIN Courses c ON e.course_id = c.id
+            WHERE e.student_id = :student_id
+        ";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute(['student_id' => $studentId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     /**
      * Get courses by category
      * @param string $category
