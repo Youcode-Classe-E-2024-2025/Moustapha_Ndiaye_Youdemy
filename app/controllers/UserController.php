@@ -94,47 +94,54 @@ class UserController
     }
 
         public function login(array $data): array
-        {
-            $errors = [];
+{
+    $errors = [];
 
-            // Validate email
-            if (empty($data['email'])) {
-                $errors['email'] = "Email is required.";
-            } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                $errors['email'] = "Please enter a valid email address.";
+    // Validation de l'email
+    if (empty($data['email'])) {
+        $errors['email'] = "Email is required.";
+    } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = "Please enter a valid email address.";
+    }
+
+    // Validation du mot de passe
+    if (empty($data['password'])) {
+        $errors['password'] = "Password is required.";
+    }
+
+    // Si des erreurs sont détectées, les retourner
+    if (!empty($errors)) {
+        return ['success' => false, 'errors' => $errors];
+    }
+
+    try {
+        $user = $this->userModel->verifyCredentials($data['email'], $data['password']);
+
+        if ($user) {
+            $status = $user['status']; 
+
+            if ($status !== 'Active') {
+                return [
+                    'success' => false,
+                    'errors' => ['account' => "Your account is $status. Please contact support."]
+                ];
             }
 
-            // Validate password
-            if (empty($data['password'])) {
-                $errors['password'] = "Password is required.";
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
             }
+            $_SESSION['user'] = $user;
 
-            // If there are errors, return them
-            if (!empty($errors)) {
-                return ['success' => false, 'errors' => $errors];
-            }
-
-            try {
-                // Verify credentials
-                $user = $this->userModel->verifyCredentials($data['email'], $data['password']);
-
-                if ($user) {
-                    // Start a session and store user data
-                    session_start();
-                    $_SESSION['user'] = $user;
-
-                    // Redirect based on role
-                    $redirectUrl = $this->getRedirectUrlByRole($user['role']);
-                    return ['success' => true, 'redirectUrl' => $redirectUrl];
-                } else {
-                    return ['success' => false, 'errors' => ['login' => "Invalid email or password."]];
-                }
-            } catch (PDOException $e) {
-                error_log("Error during login: " . $e->getMessage());
-                return ['success' => false, 'errors' => ['database' => "An error occurred during login. Please try again later."]];
-            }
+            $redirectUrl = $this->getRedirectUrlByRole($user['role']);
+            return ['success' => true, 'redirectUrl' => $redirectUrl];
+        } else {
+            return ['success' => false, 'errors' => ['login' => "Invalid email or password."]];
         }
-
+    } catch (PDOException $e) {
+        error_log("Error during login: " . $e->getMessage());
+        return ['success' => false, 'errors' => ['database' => "An error occurred during login. Please try again later."]];
+    }
+}
         /**
          * Get the redirect URL based on the user's role.
          *
@@ -154,4 +161,5 @@ class UserController
                     return '/login'; // Fallback for unknown roles
             }
         }
+
 }

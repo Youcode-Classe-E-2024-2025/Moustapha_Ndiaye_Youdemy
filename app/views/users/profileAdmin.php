@@ -316,6 +316,9 @@ if ($userId && $newRole) {
             <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
         </div>
 
+
+        
+
         <!-- Contenu de la modale -->
         <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
@@ -345,11 +348,7 @@ if ($userId && $newRole) {
                                         class="px-2 py-1 text-xs leading-5 font-semibold rounded-full <?= $user['role'] === 'Admin' ? 'bg-purple-100 text-purple-800' : ($user['role'] === 'Instructor' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') ?>"
                                         onchange="this.form.submit()"
                                     >
-                                        <option value="Student" <?= $user['role'] === 'Student' ? 'selected' : '' ?>>Student</option>
-                                        <option value="Instructor" <?= $user['role'] === 'Instructor' ? 'selected' : '' ?>>Instructor</option>
-                                        <option value="Admin" <?= $user['role'] === 'Admin' ? 'selected' : '' ?>>Admin</option>
-                                    </select>
-                                </form>
+                                       t
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <!-- Formulaire pour mettre à jour le statut -->

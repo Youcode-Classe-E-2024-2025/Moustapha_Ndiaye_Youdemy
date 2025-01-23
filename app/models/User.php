@@ -65,13 +65,21 @@ class User
      */
     public function verifyCredentials(string $email, string $password): ?array
     {
+        // Fetch the user by email
         $user = $this->findByEmail($email);
-
+    
+        // Verify the password and return the user data including status
         if ($user && password_verify($password, $user['password'])) {
-            return $user;
+            return [
+                'id' => $user['id'], // Assuming 'id' is a field in the user table
+                'name' => $user['name'], // Assuming 'name' is a field in the user table
+                'email' => $user['email'], // Assuming 'email' is a field in the user table
+                'role' => $user['role'], // Assuming 'role' is a field in the user table
+                'status' => $user['status'] // Assuming 'status' is a field in the user table
+            ];
         }
-
-        return null;
+    
+        return null; // Return null if credentials are invalid
     }
 
     /**

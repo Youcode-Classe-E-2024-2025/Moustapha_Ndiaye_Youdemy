@@ -22,12 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'password' => $password
     ]);
 
-    // if ($result['success']) {
-    //     header('Location: /dashboard'); // Redirect to the dashboard or home page
-    //     exit();
-    // } else {
-    //     $errors = $result['errors'];
-    // }
+
     if ($result['success']) {
         header('Location: ' . $result['redirectUrl']); // Redirect based on role
         exit();
@@ -112,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             class="inline-block w-full rounded bg-red-500 px-7 pb-2 pt-3 text-sm font-medium uppercase leading-normal text-white"
             data-twe-ripple-init
             data-twe-ripple-color="light">
-            Register
+            Login
         </button>
     </div>
 </form>
